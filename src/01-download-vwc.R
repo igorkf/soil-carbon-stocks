@@ -9,10 +9,6 @@
 # top soil (top 5 cm)
 # sub soil (top 100 cm)
 
-library(tidyverse)
-library(curl)
-
-
 # from https://stackoverflow.com/a/20671197/11122513
 seq_weekday <- function(selday, start, end) {
   fwd.7 <- start + 0:6
@@ -44,11 +40,12 @@ df$url <- paste0(
 
 # download all images
 for (i in 1:nrow(df)) {
-  df$url[[i]] %>%
-    readLines(warn = FALSE) %>% 
-    strsplit("(<|>)") %>% 
-    unlist() %>%
-    grep("https://.*.tif", ., value = TRUE) %>%
-    curl_download(., file.path("output", gsub("^h.*/", "", .)))
-  # cat("[VWC] Year:", df$year[[i]], "| Week:", df$week[[i]], "\n")
+  destfile <- paste0(file.path("output", df$layer[[i]]), ".tif")
+  lines <- readLines(df$url[[i]], warn = F)
+  lines <- strsplit(lines, "(<|>)")
+  lines <- unlist(lines)
+  url <- grep("https://.*.tif", lines, value = T)
+  if (!identical(url, character(0))) {
+    download.file(url, destfile, method = "wget", extra = "--no-check-certificate", quiet = T)
+  }
 }
