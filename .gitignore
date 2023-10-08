@@ -6,3 +6,4 @@
 output/*.tif
 output/*.tif.curltmp
 output/*.tif.aux.xml
+output/*.csv
