@@ -39,7 +39,9 @@ df_points <- df_points[order(df_points$id), ]
 rownames(df_points) <- NULL
 
 # check number of points with non-NA SOC stocks per county
+cat("# point-wise SOC stock estimations per county:")
 table(df_points[!is.na(df_points$stock), "county"])
+cat("\n")
 
 # plot SOC map
 df_sf <- st_as_sf(df_points, coords = c("lon", "lat"))
@@ -52,5 +54,5 @@ ggplot(df_sf) +
   theme_bw()
 
 # write points with SOC
-write.csv(df_points, "output/points_soc.csv")
+write.csv(df_points, "output/points_soc.csv", row.names = F)
 
