@@ -15,6 +15,7 @@ summary(counties)
 # sample k points for each county
 set.seed(2023)
 K <- 20
+cat("# points to sample for each county:", K, "\n")
 df_points <- data.frame()
 for (i in 1:nrow(counties)) {
   sampled_points <- sf::st_sample(counties$geometry[[i]], size = K)
