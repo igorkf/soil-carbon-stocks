@@ -5,12 +5,6 @@ library(soilDB)
 library(sharpshootR)
 library(terra)
 
-
-# q <- "SELECT * FROM sacatalog WHERE areasymbol LIKE 'AR%';"
-# x <- SDA_query(q)
-# head(x)
-
-
 # load sol util functions
 source("src/soil_utils.R")
 
@@ -48,7 +42,7 @@ df_sf <- st_as_sf(df_points, coords = c("lon", "lat"))
 df_sf <- df_sf[!is.na(df_sf$stock), ]
 st_crs(df_sf) <- 4326
 set.seed(2)
-ggplot(df_sf) + 
+ggplot(df_sf) +
   geom_sf(aes(color = stock), size = 2) +
   scale_color_viridis_c() +
   theme_bw()
