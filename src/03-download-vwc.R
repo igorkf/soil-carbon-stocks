@@ -9,13 +9,7 @@
 # top soil (top 5 cm)
 # sub soil (top 100 cm)
 
-# from https://stackoverflow.com/a/20671197/11122513
-seq_weekday <- function(selday, start, end) {
-  fwd.7 <- start + 0:6
-  first.day <- fwd.7[as.numeric(format(fwd.7, "%w")) == selday]
-  seq.Date(first.day, end, by = "week")
-}
-
+source("src/date_utils.R")
 
 df <- data.frame()
 years <- 2020:2023
@@ -31,12 +25,19 @@ for (year in years) {
   df <- rbind(df, df_temp)
 }
 
+# build URLs
 stateFIPS <- "05"  # Arkansas
 df$layer <- paste0("SMAP-HYB-1KM-WEEKLY_", df$year, "_", df$week, "_", df$mondays, "_", df$sundays, "_PM")
 df$url <- paste0(
   "https://cloud.csiss.gmu.edu/smap_service?service=WPS&version=1.0.0&request=Execute&identifier=GetFileByFips&DataInputs=layer=",
   df$layer, ';fips=', stateFIPS
 )
+
+# filter dates to a maximum
+MAX_DATE <- "2023-10-01"
+df$date_temp <- as.Date(gsub("\\.", "/", df$mondays))
+df <- df[df$date_temp <= MAX_DATE, ]
+df$date_temp <- NULL
 
 # download all images
 for (i in 1:nrow(df)) {
@@ -48,4 +49,5 @@ for (i in 1:nrow(df)) {
   if (!identical(url, character(0))) {
     download.file(url, destfile, method = "wget", extra = "--no-check-certificate", quiet = T)
   }
+  cat("Week:", df$mondays[[i]], "\n")
 }
