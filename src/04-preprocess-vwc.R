@@ -37,7 +37,7 @@ for (path in rasters) {
   cat("raster:", path, "\n")
 }
 
-# plot sequence o WVC across time for some points
+# plot sequence of WVC across time for some points
 plot(wvc ~ 1, data = df_wvc[df_wvc$id == 1, ], type = "b")
 plot(wvc ~ 1, data = df_wvc[df_wvc$id == 100, ], type = "b")
 plot(wvc ~ 1, data = df_wvc[df_wvc$id == 200, ], type = "b")

@@ -34,8 +34,8 @@ df$url <- paste0(
 )
 
 # filter dates to a maximum
-MAX_DATE <- "2023-10-01"
-df$date_temp <- as.Date(gsub("\\.", "/", df$mondays))
+MAX_DATE <- "2023-09-07"  # maximum day not overlapping Arkansas SOC date
+df$date_temp <- as.Date(gsub("\\.", "/", df$sundays))
 df <- df[df$date_temp <= MAX_DATE, ]
 df$date_temp <- NULL
 
