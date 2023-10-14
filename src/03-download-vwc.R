@@ -12,7 +12,7 @@
 source("src/date_utils.R")
 
 df <- data.frame()
-years <- 2020:2023
+years <- 2023:2023
 for (year in years) {
   start <- as.Date(paste0(year, "-01-01"))  # first day of current year
   end <- as.Date(paste0(year + 1, "-01-01")) - 1  # last day of current year
