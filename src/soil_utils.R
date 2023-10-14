@@ -1,4 +1,5 @@
 # all helper function from https://idahoagstats.github.io/AgHackathon/soc-stock-SDA.html#helper-functions
+# slight changes were made to get more variables from the query
 
 #' @title Compute Weighted Mean SOC Stock for a Single Map Unit
 #'
@@ -100,12 +101,13 @@ hzdept_r AS hztop, hzdepb_r AS hzbottom, (hzdepb_r - hzdept_r) as thick,
 --
 -- using 1/3 bar bulk density (g/cm^3)
 --
-dbthirdbar_r as db,
+dbthirdbar_r, dbovendry_r, 
 --
 -- variables with a logical 0, possibly encoded as NULL
 -- convert NULL 'quantities' into '0'
 -- SOM is ROUGHLY 58 pct SOC, future work will incorporate local estimators
 --
+om_r,
 (COALESCE(om_r, 0) / 100.0) * 0.58 AS oc, 
 (COALESCE(om_l, 0) / 100.0) * 0.58 AS oc_low, 
 (COALESCE(om_h, 0) / 100.0) * 0.58 AS oc_high, 
@@ -150,7 +152,7 @@ ORDER BY mukey, comppct_r DESC, hztop ASC;
   
   # SOC stock by horizon = 
   # thick (cm) * Db 1/3 bar (g/cm^3) * (soil fraction) * SOC (%) * conversion factor (10)
-  x$soc_kg_sq.m <- x$thick * x$db * x$soil_fraction * x$oc * 10
+  x$soc_kg_sq.m <- x$thick * x$dbthirdbar_r * x$soil_fraction * x$oc * 10
   
   # truncate profile to specified top and bottom limits
   x <- trunc(x, .top, .bottom)
