@@ -12,7 +12,7 @@
 source("src/date_utils.R")
 
 df <- data.frame()
-years <- 2023:2023
+years <- 2022
 for (year in years) {
   start <- as.Date(paste0(year, "-01-01"))  # first day of current year
   end <- as.Date(paste0(year + 1, "-01-01")) - 1  # last day of current year
@@ -27,7 +27,7 @@ for (year in years) {
 
 # build URLs
 stateFIPS <- "05"  # Arkansas
-df$layer <- paste0("SMAP-HYB-1KM-WEEKLY_", df$year, "_", df$week, "_", df$mondays, "_", df$sundays, "_PM")
+df$layer <- paste0("SMAP-9KM-WEEKLY-TOP_", df$year, "_", df$week, "_", df$mondays, "_", df$sundays, "_AVERAGE")
 df$url <- paste0(
   "https://cloud.csiss.gmu.edu/smap_service?service=WPS&version=1.0.0&request=Execute&identifier=GetFileByFips&DataInputs=layer=",
   df$layer, ';fips=', stateFIPS
