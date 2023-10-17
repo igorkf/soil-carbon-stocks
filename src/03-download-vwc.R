@@ -12,7 +12,7 @@
 source("src/date_utils.R")
 
 df <- data.frame()
-years <- 2022
+years <- 2023
 for (year in years) {
   start <- as.Date(paste0(year, "-01-01"))  # first day of current year
   end <- as.Date(paste0(year + 1, "-01-01")) - 1  # last day of current year
@@ -34,7 +34,7 @@ df$url <- paste0(
 )
 
 # filter dates to a maximum
-MAX_DATE <- "2023-09-07"  # maximum day not overlapping Arkansas SOC date
+MAX_DATE <- "2023-08-31"  # maximum day not overlapping Arkansas SOC date
 df$date_temp <- as.Date(gsub("\\.", "/", df$sundays))
 df <- df[df$date_temp <= MAX_DATE, ]
 df$date_temp <- NULL
