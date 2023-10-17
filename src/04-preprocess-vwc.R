@@ -41,7 +41,7 @@ ggplot(df_vwc, aes(x = index, y = vwc)) +
   geom_line(aes(group = id), linewidth = 0.2, alpha = 0.5) +
   facet_wrap(~county) + 
   labs(x = 'Week number', y = 'VWC', 
-       title = 'Volumetric Water Content of 20 sampled points from Jan to Set (2023)') +
+       title = 'Volumetric Water Content of 20 sampled points from Jan to Set (2022)') +
   theme_bw()
 
 # write vwc to file
