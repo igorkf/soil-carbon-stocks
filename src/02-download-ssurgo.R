@@ -24,6 +24,7 @@ for (i in 1:nrow(df_points)) {
     # horizons
     hz <- horizons(s)
     hz$mukey <- mu$mukey
+    hz$id <- df_points[i, "id"]
     horizons <- rbind(horizons, hz)
   })
 }
