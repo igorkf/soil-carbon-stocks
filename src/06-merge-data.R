@@ -81,12 +81,11 @@ hist(data$litter_to_saturation)
 hist(data$stock)
 hist(data$dbovendry_r)
 
-#
+# aggregate
 data_agg <- data %>% 
   group_by(id, county) %>% 
   summarise(
     texture = first(texture), 
-    vwc = min(vwc), 
     min_precipitation = min(precipitation),
     stock = first(stock)
   )
@@ -95,5 +94,5 @@ data_agg
 data_agg$texture <- factor(data_agg$texture)
 mod <- lm(log(stock) ~ county + texture + min_precipitation, data = data_agg)
 summary(mod)
-plot(log(data_agg$stock), mod$fitted.values)
+plot(data_agg$stock, mod$fitted.values)
 cor(log(data_agg$stock), mod$fitted.values)
