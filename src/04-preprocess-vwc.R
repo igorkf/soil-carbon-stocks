@@ -32,16 +32,15 @@ df_vwc <- df_vwc[order(df_vwc$id), ]
 rownames(df_vwc) <- NULL
 
 # create index from path
-df_vwc$index <- sapply(strsplit(df_vwc$path, split = "_"), `[`, 3)
-df_vwc$index <- as.integer(df_vwc$index)
+df_vwc$day <- sequence(tabulate(df_vwc$id))
 df_vwc$id <- factor(df_vwc$id)
 
 # plot VWC time series for each county
-ggplot(df_vwc, aes(x = index, y = vwc)) +
+ggplot(df_vwc, aes(x = day, y = vwc)) +
   geom_line(aes(group = id), linewidth = 0.2, alpha = 0.5) +
   facet_wrap(~county) + 
   labs(x = 'Week number', y = 'VWC', 
-       title = 'Volumetric Water Content of 20 sampled points from Jan to Set (2022)') +
+       title = 'Volumetric Water Content of 20 sampled points from Jan to Set (2023)') +
   theme_bw()
 
 # write vwc to file
