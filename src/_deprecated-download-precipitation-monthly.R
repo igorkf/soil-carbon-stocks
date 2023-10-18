@@ -11,12 +11,12 @@ for (i in 1:nrow(df_points)) {
     dates = c("2023-01-01", "2023-08-31"),
     temporal_api = "daily"
   )  # mm/day
-  df <- df[, c("PRECTOTCORR", "DOY")]
+  df <- df[, c("YEAR", "MM", "PRECTOTCORR")]
+  df <- aggregate(PRECTOTCORR ~ YEAR + MM, data = df, FUN = sum)
   df$id <- df_points[i, "id"]
   df_prec <- rbind(df_prec, df)
-  cat("Point:", i, "\n")
 }
-colnames(df_prec) <- c("precipitation", "day", "id")
+colnames(df_prec) <- c("year", "month", "precipitation", "id")
 
 # write to disk
 write.csv(df_prec, "output/precipitation.csv", row.names = F)
