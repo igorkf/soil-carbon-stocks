@@ -9,18 +9,35 @@
 # top soil (top 5 cm)
 # sub soil (top 100 cm)
 
-start <- as.Date("2023-01-01")
-end <- as.Date("2023-08-31")
-df <- data.frame(date = seq(start, end, 1))
-df$date <- gsub("-", ".", df$date)
+source("src/date_utils.R")
+
+df <- data.frame()
+years <- 2023
+for (year in years) {
+  start <- as.Date(paste0(year, "-01-01"))  # first day of current year
+  end <- as.Date(paste0(year + 1, "-01-01")) - 1  # last day of current year
+  seq_mondays <- seq_weekday(1, start, end)  # pick all mondays of current year
+  df_temp <- data.frame(mondays = seq_mondays, sundays = seq_mondays + 6)
+  df_temp$year <- strftime(df_temp$mondays, format = '%Y')
+  df_temp$week <- strftime(df_temp$mondays, format = '%V')
+  df_temp$mondays <- gsub("-", ".", df_temp$mondays)
+  df_temp$sundays <- gsub("-", ".", df_temp$sundays)
+  df <- rbind(df, df_temp)
+}
 
 # build URLs
 stateFIPS <- "05"  # Arkansas
-df$layer <- paste0("SMAP-9KM-DAILY-TOP_", df$date, "_AVERAGE")
+df$layer <- paste0("SMAP-9KM-WEEKLY-TOP_", df$year, "_", df$week, "_", df$mondays, "_", df$sundays, "_AVERAGE")
 df$url <- paste0(
   "https://cloud.csiss.gmu.edu/smap_service?service=WPS&version=1.0.0&request=Execute&identifier=GetFileByFips&DataInputs=layer=",
   df$layer, ';fips=', stateFIPS
 )
+
+# filter dates to a maximum
+MAX_DATE <- "2023-08-31"  # maximum day not overlapping Arkansas SOC date
+df$date_temp <- as.Date(gsub("\\.", "/", df$sundays))
+df <- df[df$date_temp <= MAX_DATE, ]
+df$date_temp <- NULL
 
 # download all images
 for (i in 1:nrow(df)) {
@@ -32,5 +49,5 @@ for (i in 1:nrow(df)) {
   if (!identical(url, character(0))) {
     download.file(url, destfile, method = "wget", extra = "--no-check-certificate", quiet = T)
   }
-  cat("Day:", df$date[[i]], "\n")
+  cat("Week:", df$mondays[[i]], "\n")
 }
