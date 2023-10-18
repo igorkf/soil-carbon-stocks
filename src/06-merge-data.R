@@ -22,7 +22,24 @@ et <- et %>%
   pivot_longer(-c(id, lon, lat, county)) %>% 
   rename(month = name, evapotranspiration = value) %>% 
   mutate(month = as.integer(str_sub(month, start = 7, end = 8))) %>% 
-  filter(month <= 8)
+  filter(month <= 8) %>% 
+  drop_na()
+
+# linear interpolation on et
+n <- as.integer(as.Date("2023-08-31") - as.Date("2023-01-01"))
+et2 <- data.frame()
+for (id in unique(et$id)) {
+  et_sub <- et[et$id == id, ]
+  lin <- data.frame(evapotranspiration = approx(x = et_sub$month, et_sub$evapotranspiration, n = n)$y)
+  lin$id <- id
+  lin$day <- 1:nrow(lin)
+  et2 <- rbind(et2, lin)
+}
+et2$evapotranspiration <- et2$evapotranspiration / 8
+et2 <- inner_join(et2, distinct(et[, c("id", "lon", "lat", "county")]), by = "id")
+# ggplot(et2, aes(x = day, y = evapotranspiration)) +
+#   geom_point() +
+#   facet_wrap(~county)
 
 # ssurgo
 hz <- read.csv("output/horizons.csv")
