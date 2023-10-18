@@ -70,6 +70,9 @@ data$prec_minus_et <- data$precipitation - data$evapotranspiration
 data$total_porosity <- 1 - (data$dbovendry_r / 2.65)
 data$litter_to_saturation <- ((data$total_porosity / data$dbovendry_r) * (data$dbovendry_r * 100000)) / 1000
 
+# write to disk
+write.csv(data, "output/final_data.csv", row.names = F)
+
 summary(data)
 hist(data$vwc)
 hist(data$vwc_L)
@@ -95,4 +98,5 @@ data_agg$texture <- factor(data_agg$texture)
 mod <- lm(log(stock) ~ county + texture + min_precipitation, data = data_agg)
 summary(mod)
 plot(data_agg$stock, mod$fitted.values)
+plot(log(data_agg$stock), mod$fitted.values)
 cor(log(data_agg$stock), mod$fitted.values)
