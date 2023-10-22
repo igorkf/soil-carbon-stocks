@@ -5,10 +5,6 @@ library(soilDB)
 soc <- read.csv("output/soc.csv")
 soc <- soc[, c("id", "fraction", "stock")]
 
-# switch-case months
-# months <- do.call(function(x) toupper(substr(x, 1, 3)), list(month.name))
-# months_ids <- seq(1, length(months))
-
 # precipitation
 pr <- read.csv("output/precipitation.csv")
 
@@ -37,7 +33,7 @@ for (id in unique(et$id)) {
 et2$evapotranspiration <- et2$evapotranspiration / 8
 et2 <- inner_join(et2, distinct(et[, c("id", "lon", "lat", "county")]), by = "id")
 # ggplot(et2, aes(x = day, y = evapotranspiration)) +
-#   geom_point() +
+#   geom_line(linewidth = 0.1) +
 #   facet_wrap(~county)
 
 # ssurgo
@@ -107,14 +103,14 @@ data$ke <- 0.5 * data$potential_water_minus_runoff * (data$pore_velocity ^ 2)
 write.csv(data, "output/final_data.csv", row.names = F)
 
 
-# after modelling
+
+# just a sketch (don't need to run)
 # data$stock_fitted <- -1.538 - (0.118 * log(data$ke))
 # data_clean <- data[data$stock_fitted != Inf, ]
 # rownames(data_clean) <- NULL
 # data_clean$stock_fitted <- exp(data_clean$stock_fitted)
 # plot(data_clean[, c("stock_fitted", "vwc", "evapotranspiration", "precipitation")])
 # plot(data_clean$stock_fitted)
-
 # model
 # library(nlme)
 # m <- lm(log(stock_fitted) ~ log(precipitation), data = data_clean)
