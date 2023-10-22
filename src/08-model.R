@@ -33,13 +33,14 @@ summary(m2)
 plot(data2$stock, exp(fitted(m2)))
 cor(data2$stock, exp(fitted(m2)))
 
-# checking residuals spatial autocrrelation
+# checking residuals spatial autocorrelation
 data2$residual <- residuals(m2, type = "normalized")
 ggplot(data2, aes(x = lon, y = lat, color = residual)) +
   geom_point(size = 3, alpha = 0.8) +
   theme_bw()
 
 
+# just sketch (don't need to run)
 # exponential model
 # theta0 <- min(data$stock) * 0.1
 # model0 <- lm(log(stock - theta0) ~ ke, data = data)
