@@ -1,6 +1,5 @@
 ##################################################################################
 # based on the script developed by Dr. Leo Bastos, and adapted from 
-# https://nassgeo.csiss.gmu.edu/Crop-CASMA-Developer/wps/overview/
 # https://github.com/leombastos/2023_aghack_vwc/blob/main/code/01%20download.qmd
 ##################################################################################
 
