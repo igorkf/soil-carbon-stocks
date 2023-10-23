@@ -8,3 +8,4 @@ output/*.tif.curltmp
 output/*.tif.aux.xml
 output/*.csv
 Rplots.pdf
+*.png

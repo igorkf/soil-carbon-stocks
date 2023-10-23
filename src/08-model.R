@@ -2,12 +2,13 @@ library(nlme)
 library(ggplot2)
 
 # useful materials
-# https://rpubs.com/mengxu/exponential-model
 # https://online.stat.psu.edu/stat485/lesson/19/19.8
+# https://www.zachrutledge.com/uploads/1/2/5/6/125679559/interpreting_regression_coefficients.pdf
+# https://rpubs.com/mengxu/exponential-model
 
 d <- read.csv("output/final_data.csv")
 
-# per month aggregation
+# per id-county aggregation
 data <- aggregate(ke ~ id + county, data = d, FUN = sum)
 data$stock <- aggregate(stock ~ id + county, data = d, FUN = function(x) head(x, 1))$stock
 data$lon <- aggregate(lon ~ id + county, data = d, FUN = function(x) head(x, 1))$lon
@@ -28,6 +29,14 @@ re <- residuals(m1, type = "normalized")
 data2 <- data[abs(re) < 2, ]
 rownames(data2) <- NULL
 m2 <- lme(log(stock) ~ log(ke), random = ~ 1 | county, data = data2)
+coefs <- coef(summary(m2))
+coefs
+
+# interpretation
+# %1 change in "ke" is associated with a b1% change in Y (when holding all other variables in the model)
+
+
+# results
 plot(m2)
 summary(m2)
 plot(data2$stock, exp(fitted(m2)))
@@ -39,36 +48,57 @@ ggplot(data2, aes(x = lon, y = lat, color = residual)) +
   geom_point(size = 3, alpha = 0.8) +
   theme_bw()
 
+# binding predictions
+b0 <- coefs[rownames(coefs) == "(Intercept)", "Value"]
+b1 <- coefs[rownames(coefs) == "log(ke)", "Value"]
+d$yhat <- exp(b0 + (b1 * log(d$ke)))
+d_clean <- d[d$yhat != Inf, ]
+rownames(d_clean) <- NULL
 
-# just sketch (don't need to run)
-# exponential model
-# theta0 <- min(data$stock) * 0.1
-# model0 <- lm(log(stock - theta0) ~ ke, data = data)
-# alpha0 <- exp(coef(model0)[1])
-# beta0 <- coef(model0)[2]
-# start <- list(alpha = alpha0, beta = beta0, theta = theta0)
-# model <- nls(stock ~ alpha * exp(beta * ke) + theta, data = data, start = start)
+##############################################################
 
-# interpreting
-# summary(model)
+# PLOTS
+p1 <- ggplot(d_clean, aes(x = day, y = yhat)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(n.breaks = 8) +
+  labs(x = "Days of the Year", y = bquote('Predicted SOC' ~ (kg/m ^ 2))) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = 18, color = "black"),
+    axis.text.y = element_text(size = 18, color = "black"),
+    axis.title.x = element_text(size = 20, color = "black"),
+    axis.title.y = element_text(size = 20, color = "black")
+  )
+p1
 
-# predictions
-# yhat <- predict(model, list(ke = data$ke))
-# data_pred <- data.frame(ke = data$ke, stock = data$stock, yhat = yhat)
-# data_pred <- data_pred[order(data_pred$ke), ]
-# rownames(data_pred) <- NULL
+p2 <- ggplot(d_clean, aes(x = day, y = ke)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(n.breaks = 8) +
+  labs(x = "Days of the Year", y = bquote('KE' ~ (Joules))) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = 18, color = "black"),
+    axis.text.y = element_text(size = 18, color = "black"),
+    axis.title.x = element_text(size = 20, color = "black"),
+    axis.title.y = element_text(size = 20, color = "black")
+  )
+p2
 
-# plot
-# plot(stock ~ ke, data = data_pred)
-# lines(data_pred$ke, data_pred$yhat, col = "red", lwd = 3)
-
-# equation
-# y = alpha * exp(beta * x) + theta
-# coef(model)
-# coef(model)[1]
-# coef(model)[2]
-# coef(model)[3]
-
-# plot from equation
-# plot(data_pred$ke, data_pred$stock)
-# lines(data_pred$ke, 3.83 * exp(-723386098 * data_pred$ke) + 3.19, col = "red", lwd = 3)  
+p3 <- ggplot(d_clean, aes(x = day, y = precipitation)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(n.breaks = 8) +
+  labs(x = "Days of the Year", y = bquote('Precipitation' ~ (mm/day))) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = 18, color = "black"),
+    axis.text.y = element_text(size = 18, color = "black"),
+    axis.title.x = element_text(size = 20, color = "black"),
+    axis.title.y = element_text(size = 20, color = "black")
+  )
+p3
