@@ -6,6 +6,6 @@
 output/*.tif
 output/*.tif.curltmp
 output/*.tif.aux.xml
-output/*.csv
+output/*/*.csv
 Rplots.pdf
 *.png
