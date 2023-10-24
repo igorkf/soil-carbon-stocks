@@ -3,9 +3,9 @@
 .RData
 .Ruserdata
 
-output/*.tif
-output/*.tif.curltmp
-output/*.tif.aux.xml
+output/*/*.tif
+output/*/*.tif.curltmp
+output/*/*.tif.aux.xml
 output/*/*.csv
 Rplots.pdf
 *.png
