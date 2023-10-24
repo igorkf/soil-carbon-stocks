@@ -17,7 +17,7 @@
 # pip install earthengine-api
 # pip install numpy
 
-# 4. get the rgee_py environment path
+# 4. get the rgee_py environment path that you just installed
 environments <- reticulate::conda_list()
 rgee_environment_dir <- environments[environments$name == "rgee_py", "python"]
 
@@ -38,6 +38,7 @@ Sys.setenv(EARTHENGINE_PYTHON = rgee_environment_dir)
 # if you get an error run rgee::ee_clean_user_credentials()
 # next, copy the token and paste in the R console
 # the R console may ask you the root folder...I put users/igorkf
+rgee::ee_clean_user_credentials()
 rgee::ee_Initialize(drive = T)
 
 
@@ -51,55 +52,67 @@ require(sf)
 require(sp)
 library(rgee)
 
-points <- read.csv("output/points.csv")
-pointCoordinates <- points[, c(1,2)]
-coordinates(pointCoordinates) <- ~ lon+ lat
-proj4string(pointCoordinates) <- CRS("+proj=longlat +datum=WGS84")
-poligono <- rgeos::gConvexHull(pointCoordinates)
-poligono <- st_as_sf(poligono)
-poligono <- rgee::sf_as_ee(poligono)
-dataset <- ee$ImageCollection('MODIS/061/MOD16A2')$filter(ee$Filter$date("2021-01-01", "2023-12-31"))$filterBounds(poligono)
-dataset$size()$getInfo()
-evapotranspiration <- dataset$select("ET")
-listImages <- evapotranspiration$toList(91)
-dates <- seq(as.Date("2021-01-01"), as.Date("2023-12-31"), by = "month")
-stackImages <- list()
-FinalDates <- list()
-for (i in 1:(length(dates) - 1)) {
-  d1 <- ee$Date(as.character(dates[i]))
-  d2 <- ee$Date(as.character(dates[i + 1]))
-  ETMean <- dataset$filter(ee$Filter$date(d1, d2))
-  
-  if(ETMean$size()$getInfo() > 0) {
-    ETMean <- ETMean$select("ET")$mean()$clip(poligono)$rename("ETMean")
-    ETMean <- ETMean$unmask(-9999)
-    ##DataFrame de indice
-    latlon <- ee$Image$pixelLonLat()
-    latlon <- latlon$addBands(ETMean)
-    # apply reducer to list
-    latlonreduce <- latlon$reduceRegion(ee$Reducer$toList(), poligono, maxPixels=1e9, scale=500);
-    data <- array(latlonreduce$get("ETMean")$getInfo())
-    lats <- array(latlonreduce$get("latitude")$getInfo())
-    lons <- array(latlonreduce$get("longitude")$getInfo())
-    df <- data.frame(x = lons, y = lats, ET = data)
-    ##Genera raster y filtra raster de indice
-    XYZ <- rasterFromXYZ(df)
-    XYZ[XYZ == -9999] <- NA
-    FinalDates[[i]] <- dates[i] + floor((dates[i + 1] - dates[i]) / 2)
-    stackImages[[i]] <- XYZ
-    cat(dates[i], "\n")
+extract_evapotranspiration <- function(data, start, end) {
+  pointCoordinates <- data[, c("lon", "lat")]
+  coordinates(pointCoordinates) <- ~ lon + lat
+  proj4string(pointCoordinates) <- CRS("+proj=longlat +datum=WGS84")
+  poligono <- rgeos::gConvexHull(pointCoordinates)
+  poligono <- st_as_sf(poligono)
+  poligono <- rgee::sf_as_ee(poligono)
+  dataset <- ee$ImageCollection("MODIS/061/MOD16A2")$filter(ee$Filter$date(start, end))$filterBounds(poligono)
+  dataset$size()$getInfo()
+  evapotranspiration <- dataset$select("ET")
+  listImages <- evapotranspiration$toList(91)
+  dates <- seq(as.Date(start), as.Date(end), by = "month")
+  stackImages <- list()
+  FinalDates <- list()
+  for (i in 1:(length(dates) - 1)) {
+    d1 <- ee$Date(as.character(dates[i]))
+    d2 <- ee$Date(as.character(dates[i + 1]))
+    ETMean <- dataset$filter(ee$Filter$date(d1, d2))
+    
+    if(ETMean$size()$getInfo() > 0) {
+      ETMean <- ETMean$select("ET")$mean()$clip(poligono)$rename("ETMean")
+      ETMean <- ETMean$unmask(-9999)
+      ##DataFrame de indice
+      latlon <- ee$Image$pixelLonLat()
+      latlon <- latlon$addBands(ETMean)
+      # apply reducer to list
+      latlonreduce <- latlon$reduceRegion(ee$Reducer$toList(), poligono, maxPixels=1e9, scale=500);
+      et <- array(latlonreduce$get("ETMean")$getInfo())
+      lats <- array(latlonreduce$get("latitude")$getInfo())
+      lons <- array(latlonreduce$get("longitude")$getInfo())
+      df <- data.frame(x = lons, y = lats, ET = et)
+      ##Genera raster y filtra raster de indice
+      XYZ <- rasterFromXYZ(df)
+      XYZ[XYZ == -9999] <- NA
+      FinalDates[[i]] <- dates[i] + floor((dates[i + 1] - dates[i]) / 2)
+      stackImages[[i]] <- XYZ
+      cat(dates[i], "\n")
+    }
   }
+  stackImages <- Filter(Negate(is.null), stackImages)
+  FinalDates <- Filter(Negate(is.null), FinalDates)
+  ETFinal <- stack(stackImages)
+  proj4string(ETFinal) <- CRS("+proj=longlat +datum=WGS84")
+  # writeRaster(et_ar, "output/Arkansas/StackET.tif", overwrite = T)
+  rasValue <- as.data.frame(raster::extract(ETFinal, pointCoordinates))
+  FinalDatesCharacter <- sapply(FinalDates, as.character)
+  names(rasValue) <- FinalDatesCharacter
+  rasValue <- cbind(data, rasValue)
+  return(rasValue)
 }
 
-stackImages <- Filter(Negate(is.null), stackImages)
-FinalDates <- Filter(Negate(is.null), FinalDates)
-ETFinal <- stack(stackImages)
-proj4string(ETFinal) <- CRS("+proj=longlat +datum=WGS84")
-writeRaster(ETFinal, "output/StackET.tif", overwrite = T)
 
-# Extract ET values from points 
-rasValue <- as.data.frame(raster::extract(ETFinal, pointCoordinates))
-FinalDatesCharacter <- sapply(FinalDates, as.character)
-names(rasValue) <- FinalDatesCharacter
-rasValue <- cbind(points, rasValue)
-write.table(rasValue, "output/Evapotranspiration.csv", dec = ".", sep = ",", row.names = F)
+start <- "2021-01-01"
+end <- "2023-12-31"
+
+# ARKANSAS
+points_ar <- read.csv("output/Arkansas/points.csv")
+et_ar <- extract_evapotranspiration(points_ar, start, end)
+write.table(et_ar, "output/Arkansas/evapotranspiration.csv", dec = ".", sep = ",", row.names = F)
+
+# CALIFORNIA
+points_ca <- read.csv("output/California/points.csv")
+et_ca <- extract_evapotranspiration(points_ca, start, end)
+write.table(et_ca, "output/California/evapotranspiration.csv", dec = ".", sep = ",", row.names = F)
