@@ -46,7 +46,7 @@ data_ca <- read.csv("output/California/final_data.csv")
 data_ca <- data_ca[data_ca$texture %in% unique(data_ar$texture), ]
 rownames(data_ca) <- NULL
 data_ca_agg <- agg(data_ca)
-data_ca_agg <- data_ca_agg[data_ca_agg$soc < 20, ]
+data_ca_agg <- data_ca_agg[data_ca_agg$soc < 13, ]
 rownames(data_ca_agg) <- NULL
 data_ca_agg$texture <- factor(data_ca_agg$texture)
 
