@@ -12,7 +12,7 @@
 # 3. create a new python environment
 # run all these steps in your terminal
 # conda create -n rgee_py python=3.9
-# conda activate rgee_py (in Windows is: activate rgee_py)
+# conda activate rgee_py
 # pip install google-api-python-client
 # pip install earthengine-api
 # pip install numpy
@@ -21,10 +21,11 @@
 environments <- reticulate::conda_list()
 rgee_environment_dir <- environments[environments$name == "rgee_py", "python"]
 
-# 4. install geojsonio
-# this package is cumbersome to install in Linux
-# if you are in Linux, you can follow some rules here: https://github.com/ropensci/geojsonio#install
+# 4. install rgeos and geojsonio
 install.packages("https://cran.r-project.org/src/contrib/Archive/rgeos/rgeos_0.6-4.tar.gz", type = "source")  # rgeos was archived in CRAN
+# geojsonio is cumbersome to install in Linux
+# if you are in Linux, you can follow some rules here: https://github.com/ropensci/geojsonio#install
+# you may need to install packages in linux such as libjq-dev, libprotobuf-dev, and protobuf-compiler
 install.packages("geojsonio")
 remotes::install_github("r-spatial/rgee")
 
@@ -38,6 +39,7 @@ Sys.setenv(EARTHENGINE_PYTHON = rgee_environment_dir)
 # if you get an error run rgee::ee_clean_user_credentials()
 # next, copy the token and paste in the R console
 # the R console may ask you the root folder...I put users/igorkf
+# sometimes you get an error...you can just hit ESC and continue to the next section
 rgee::ee_clean_user_credentials()
 rgee::ee_Initialize(drive = T)
 
