@@ -109,10 +109,11 @@ cor(data_ca_agg$soc, data_ca_agg$yhat)
 p5 <- ggplot(data_ca_agg, aes(x = soc, y = yhat)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  geom_abline(linetype = "dashed") +
-  coord_cartesian(expand = F, xlim = c(0, NA), ylim = c(0, NA)) +
+  geom_abline(linetype = "dashed", color = "grey60") +
+  coord_cartesian(expand = F, xlim = c(0, NA), ylim = c(0, max(data_ca_agg$soc))) +
   labs(x = "SOC", y = "Predicted SOC") +
-  theme_bw()
+  theme_bw() +
+  theme(aspect.ratio = 1)
 p5
 
 
