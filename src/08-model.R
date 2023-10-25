@@ -5,6 +5,8 @@ library(ggplot2)
 # https://online.stat.psu.edu/stat485/lesson/19/19.8
 # https://www.zachrutledge.com/uploads/1/2/5/6/125679559/interpreting_regression_coefficients.pdf
 # https://library.virginia.edu/data/articles/interpreting-log-transformations-in-a-linear-model
+# https://bookdown.org/steve_midway/DAR/random-effects.html
+# https://www.rdocumentation.org/packages/nlme/versions/3.1-163/topics/predict.lme
 # https://rpubs.com/mengxu/exponential-model
 
 agg <- function(data) {
@@ -17,6 +19,7 @@ agg <- function(data) {
   data_agg$soc <- aggregate(soc ~ id + county, data = data, FUN = function(x) head(x, 1))$soc
   data_agg$lon <- aggregate(lon ~ id + county, data = data, FUN = function(x) head(x, 1))$lon
   data_agg$lat <- aggregate(lat ~ id + county, data = data, FUN = function(x) head(x, 1))$lat
+  data_agg$texture <- aggregate(texture ~ id + county, data = data, FUN = function(x) head(x, 1))$texture
   data_agg <- data_agg[data_agg$ke > 0, ]
   rownames(data_agg) <- NULL
   return(data_agg)
@@ -25,7 +28,7 @@ agg <- function(data) {
 # ARKANSAS
 data_ar <- read.csv("output/Arkansas/final_data.csv")
 data_ar_agg <- agg(data_ar)
-
+data_ar_agg$texture <- factor(data_ar_agg$texture)
 p1 <- ggplot(data_ar_agg, aes(x = ke, y = soc)) +
   geom_point() +
   labs(x = 'KE (Joules)', y = bquote('SOC' ~ (kg/m ^ 2))) + 
@@ -43,6 +46,9 @@ data_ca <- read.csv("output/California/final_data.csv")
 data_ca <- data_ca[data_ca$texture %in% unique(data_ar$texture), ]
 rownames(data_ca) <- NULL
 data_ca_agg <- agg(data_ca)
+data_ca_agg <- data_ca_agg[data_ca_agg$soc < 20, ]
+rownames(data_ca_agg) <- NULL
+data_ca_agg$texture <- factor(data_ca_agg$texture)
 
 # comparing both
 data_ar_ca_agg <- rbind(
@@ -73,7 +79,7 @@ p3
 
 # plot(m2)
 summary(m2)
-cor(data_ar_agg2$soc, fitted(m2))
+cor(data_ar_agg2$soc, exp(predict(m2, newdata = data_ar_agg2)))
 coefs <- coef(summary(m2))
 coefs  
 
@@ -96,45 +102,18 @@ p4
 # variance components
 VarCorr(m2)
 
-##########################################################################
-# second model is an attempt to extrapolate predictions to another region
-##########################################################################
-m3 <- lm(log(soc) ~ log(ke), data = data_ar_agg)
-summary(m3)
-# removing potential outliers and fitting again
-re <- rstandard(m3)
-data_ar_agg3 <- data_ar_agg[abs(re) < 2, ]
-rownames(data_ar_agg3) <- NULL
-m4 <- lm(log(soc) ~ log(ke), data = data_ar_agg3)
-coefs <- coef(summary(m4))
-summary(m4)
-coefs
-plot(data_ar_agg3$soc, exp(fitted(m4)))
-cor(data_ar_agg3$soc, exp(fitted(m4)))
-
-############################################################################
-
-# CALIFORNIA
-# plot(data_ca_agg$ke, data_ca_agg$soc)
-# plot(data_ca_agg$ke, sqrt(data_ca_agg$soc))
-# plot(data_ca_agg$ke, log(data_ca_agg$soc))
-# plot(log(data_ca_agg$ke), log(data_ca_agg$soc))
-
-data_ca_agg$yhat <- exp(predict(m4, newdata = data_ca_agg))
-plot(data_ca_agg$soc, data_ca_agg$yhat)
+# predict on California
+# level = 0 means we want population-level predictions because we have unknown levels
+data_ca_agg$yhat <- exp(predict(m2, newdata = data_ca_agg, level = 0))
 cor(data_ca_agg$soc, data_ca_agg$yhat)
-p <- ggplot(data_ca_agg, aes(x = soc, y = yhat)) +
+p5 <- ggplot(data_ca_agg, aes(x = soc, y = yhat)) +
   geom_point() +
   geom_smooth(method = "lm") +
   geom_abline(linetype = "dashed") +
   coord_cartesian(expand = F, xlim = c(0, NA), ylim = c(0, NA)) +
   labs(x = "SOC", y = "Predicted SOC") +
   theme_bw()
-p
-# r <- max(abs(layer_scales(p)$x$range$range))
-# s <- max(abs(layer_scales(p)$y$range$range))
-# t <- round(max(r,s),1)
-# p <- p + coord_equal(xlim = c(0, t), ylim = c(0, t))
+p5
 
 
 ##############################################################
