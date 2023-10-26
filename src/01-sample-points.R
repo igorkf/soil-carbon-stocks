@@ -47,6 +47,7 @@ df_sf <- st_as_sf(points_ca, coords = c("lon", "lat"))
 st_crs(df_sf) <- 4326
 ggplot(df_sf) + 
   geom_sf(size = 0.5) + 
+  labs(x = "Longitude", y = "Latitude") + 
   theme_bw()
 
 write.csv(points_ca, "output/California/points.csv", row.names = F)
