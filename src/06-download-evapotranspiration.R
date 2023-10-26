@@ -13,11 +13,13 @@
 # run all these steps in your terminal
 # conda create -n rgee_py python=3.9
 # conda activate rgee_py
-# pip install google-api-python-client
-# pip install earthengine-api
-# pip install numpy
+# pip install google-api-python-client earthengine-api numpy
 
 # 4. get the rgee_py environment path that you just installed
+# if reticulate does not find you anaconda installation, do this:
+# do "conda env list" in your terminal, and get the path to the environment
+# in Windows is somthing like this: C:/Users/igorf/AppData/Local/miniconda3/envs/rgee_py
+# run this command using your path: reticulate::use_python("C:/Users/igorf/AppData/Local/miniconda3/envs/rgee_py")
 environments <- reticulate::conda_list()
 rgee_environment_dir <- environments[environments$name == "rgee_py", "python"]
 
@@ -27,6 +29,7 @@ install.packages("https://cran.r-project.org/src/contrib/Archive/rgeos/rgeos_0.6
 # if you are in Linux, you can follow some rules here: https://github.com/ropensci/geojsonio#install
 # you may need to install packages in linux such as libjq-dev, libprotobuf-dev, and protobuf-compiler
 install.packages("geojsonio")
+install.packages("remotes")
 remotes::install_github("r-spatial/rgee")
 
 # 5. set python and rgee
