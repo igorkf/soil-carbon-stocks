@@ -46,7 +46,7 @@ data_ca <- read.csv("output/California/final_data.csv")
 data_ca <- data_ca[data_ca$texture %in% unique(data_ar$texture), ]
 rownames(data_ca) <- NULL
 data_ca_agg <- agg(data_ca)
-data_ca_agg <- data_ca_agg[data_ca_agg$soc < 13, ]
+data_ca_agg <- data_ca_agg[data_ca_agg$soc < 15, ]
 rownames(data_ca_agg) <- NULL
 data_ca_agg$texture <- factor(data_ca_agg$texture)
 
@@ -101,6 +101,31 @@ p4
 
 # variance components
 VarCorr(m2)
+
+# ICC
+var_county <- as.numeric(VarCorr(m2)[1, 1])
+var_residuals <- as.numeric(VarCorr(m2)[2, 1])
+icc <- var_county / (var_county + var_residuals)
+icc
+
+# residual plots
+df_resid <- data.frame(
+  residual = residuals(m2, type = "normalized"),
+  fitted = exp(fitted(m2)),
+  lon = data_ar_agg2$lon,
+  lat = data_ar_agg2$lat
+)
+ggplot(df_resid, aes(x = fitted, residual)) +
+  geom_point(size = 2) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  labs(x = "Fitted values", y = "Standardized residuals") + 
+  theme_bw()
+
+ggplot(df_resid, aes(x = lon, y = lat, colour = residual)) +
+  geom_point(size = 2, alpha = 0.9) +
+  labs(x = "Longitude", y = "Latitude") + 
+  theme_bw()
+
 
 # predict on California
 # level = 0 means we want population-level predictions because we have unknown levels
