@@ -7,6 +7,7 @@ library(ggplot2)
 # https://library.virginia.edu/data/articles/interpreting-log-transformations-in-a-linear-model
 # https://bookdown.org/steve_midway/DAR/random-effects.html
 # https://www.rdocumentation.org/packages/nlme/versions/3.1-163/topics/predict.lme
+# https://stackoverflow.com/questions/13828360/access-outlier-ids-in-lme-plot
 # https://rpubs.com/mengxu/exponential-model
 
 agg <- function(data) {
@@ -64,6 +65,10 @@ ggplot(data_ar_ca_agg, aes(x = log(ke), y = log(soc))) +
   facet_wrap(~state) +
   theme_bw()
 
+
+h1 <- MASS::rlm(log(soc) ~ log(ke) + county, data = data_ar_agg)
+summary(h1)
+
 ###################################################################
 # first model for explanability that uses county as random effect
 ###################################################################
@@ -71,7 +76,7 @@ m1 <- lme(log(soc) ~ log(ke), random = ~ 1 | county, data = data_ar_agg)
 summary(m1)
 # removing potential outliers and fitting again
 re <- residuals(m1, type = "normalized")
-data_ar_agg2 <- data_ar_agg[abs(re) < 2, ]
+data_ar_agg2 <- data_ar_agg[abs(re) < 2, ]  # =~ qnorm(0.977)
 rownames(data_ar_agg2) <- NULL
 m2 <- lme(log(soc) ~ log(ke), random = ~ 1 | county, data = data_ar_agg2)
 p3 <- plot(m2)
@@ -115,11 +120,18 @@ df_resid <- data.frame(
   lon = data_ar_agg2$lon,
   lat = data_ar_agg2$lat
 )
-ggplot(df_resid, aes(x = fitted, residual)) +
+
+res1 <- ggplot(df_resid, aes(x = residual)) + 
+  geom_histogram() +
+  theme_bw()
+
+res2 <- ggplot(df_resid, aes(x = fitted, residual)) +
   geom_point(size = 2) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
   labs(x = "Fitted values", y = "Standardized residuals") + 
   theme_bw()
+
+
 
 ggplot(df_resid, aes(x = lon, y = lat, colour = residual)) +
   geom_point(size = 2, alpha = 0.9) +
