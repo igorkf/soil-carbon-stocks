@@ -19,6 +19,11 @@ build_urls <- function(data, fips) {
 }
 
 extract_vwc <- function(data, state) {
+  if (Sys.info()["sysname"] == "Windows") {
+    method <- "wininet"
+  } else {
+    method <- "wget"
+  }
   for (i in 1:nrow(data)) {
     destfile <- paste0(file.path("output/", state, "/", data$layer[[i]]), ".tif")
     lines <- readLines(data$url[[i]], warn = F)
@@ -26,7 +31,7 @@ extract_vwc <- function(data, state) {
     lines <- unlist(lines)
     url <- grep("https://.*.tif", lines, value = T)
     if (!identical(url, character(0))) {
-      download.file(url, destfile, method = "wget", extra = "--no-check-certificate", quiet = T)
+      download.file(url, destfile, method = method, extra = "--no-check-certificate", quiet = T)
     }
     cat("Day:", data$date[[i]], "\n")
   }
