@@ -66,9 +66,6 @@ ggplot(data_ar_ca_agg, aes(x = log(ke), y = log(soc))) +
   theme_bw()
 
 
-h1 <- MASS::rlm(log(soc) ~ log(ke) + county, data = data_ar_agg)
-summary(h1)
-
 ###################################################################
 # first model for explanability that uses county as random effect
 ###################################################################
@@ -114,29 +111,46 @@ icc <- var_county / (var_county + var_residuals)
 icc
 
 # residual plots
+qqtemp <- qqnorm(m2)
 df_resid <- data.frame(
   residual = residuals(m2, type = "normalized"),
   fitted = exp(fitted(m2)),
+  qq = qqtemp$panel.args[[1]]$y,
   lon = data_ar_agg2$lon,
   lat = data_ar_agg2$lat
 )
 
-res1 <- ggplot(df_resid, aes(x = residual)) + 
-  geom_histogram() +
-  theme_bw()
-
-res2 <- ggplot(df_resid, aes(x = fitted, residual)) +
+res1 <- ggplot(df_resid, aes(x = fitted, residual)) +
   geom_point(size = 2) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
   labs(x = "Fitted values", y = "Standardized residuals") + 
   theme_bw()
+res1
 
+res2 <- ggplot(df_resid, aes(x = residual, qq)) +
+  geom_point() +
+  coord_cartesian(expand = F, xlim = c(-3.2, 3.2), ylim = c(-3.2, 3.2)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  theme(aspect.ratio = 1) +
+  labs(x = qqtemp$xlab, y = qqtemp$ylab) +
+  theme_bw()
+res2
 
-
-ggplot(df_resid, aes(x = lon, y = lat, colour = residual)) +
-  geom_point(size = 2, alpha = 0.9) +
+res3 <- ggplot(df_resid, aes(x = 1:nrow(df_resid), y = residual)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  labs(x = "ID", y = "Standardized residuals") + 
+  theme_bw()
+res3
+  
+res4 <- ggplot(df_resid, aes(x = lon, y = lat, colour = residual)) +
+  geom_point(alpha = 0.9) +
   labs(x = "Longitude", y = "Latitude") + 
   theme_bw()
+res4
+
+
+
 
 
 # predict on California
