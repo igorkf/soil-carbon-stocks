@@ -85,7 +85,7 @@ clean_data <- function(data) {
   return(data)
 }
 
-feature_engineering <- function(data) {
+calculate_vars <- function(data) {
   data$vwc_L <- ((data$vwc / data$dbovendry_r) * (data$dbovendry_r * 50000)) / 1000
   data$fc_L <- ((data$fc / data$dbovendry_r) * (data$dbovendry_r * 50000)) / 1000
   data$potential_water <- data$precipitation - data$evapotranspiration + data$vwc_L
@@ -118,20 +118,18 @@ end <- "2023-08-31"
 data_ar <- merge_data("Arkansas", start, end)
 data_ar <- clean_data(data_ar)
 table(filter(data_ar, day == 1)$county)
-data_ar <- feature_engineering(data_ar)
+data_ar <- calculate_vars(data_ar)
 write.csv(data_ar, "output/Arkansas/final_data.csv", row.names = F)
 
 # CALIFORNIA
 data_ca <- merge_data("California", start, end)
 data_ca <- clean_data(data_ca)
 table(filter(data_ca, day == 1)$county)
-data_ca <- feature_engineering(data_ca)
+data_ca <- calculate_vars(data_ca)
 write.csv(data_ca, "output/California/final_data.csv", row.names = F)
 
-# ~75% is AR (for training)
-# ~25% of data is CA (for validation)
+# proportion
 nrow(data_ca) / nrow(data_ar)
-
 
 
 # just a sketch (don't need to run)
