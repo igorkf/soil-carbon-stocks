@@ -130,28 +130,3 @@ write.csv(data_ca, "output/California/final_data.csv", row.names = F)
 
 # proportion
 nrow(data_ca) / nrow(data_ar)
-
-
-# just a sketch (don't need to run)
-# data$stock_fitted <- -1.538 - (0.118 * log(data$ke))
-# data_clean <- data[data$stock_fitted != Inf, ]
-# rownames(data_clean) <- NULL
-# data_clean$stock_fitted <- exp(data_clean$stock_fitted)
-# plot(data_clean[, c("stock_fitted", "vwc", "evapotranspiration", "precipitation")])
-# plot(data_clean$stock_fitted)
-# model
-# library(nlme)
-# m <- lm(log(stock_fitted) ~ log(precipitation), data = data_clean)
-# summary(m)
-# m <- lme(log(stock_fitted) ~ precipitation + as.factor(day), random = ~ 1 | county, data = data_clean)
-# summary(m)
-# plot(m)
-# theta0 <- min(data_clean$stock_fitted) * 0.1
-# model0 <- lm(log(stock_fitted - theta0) ~ precipitation, data = data_clean)
-# alpha0 <- exp(coef(model0)[1])
-# beta0 <- coef(model0)[2]
-# start <- list(alpha = alpha0, beta = beta0, theta = theta0)
-# model <- nls(stock_fitted ~ alpha * exp(beta * ke) + theta, data = data_clean, start = start)
-# interpreting
-# summary(model)
-

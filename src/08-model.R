@@ -67,7 +67,7 @@ ggplot(data_ar_ca_agg, aes(x = log(ke), y = log(soc))) +
 
 
 ###################################################################
-# first model for explanability that uses county as random effect
+# log-log linear mixed model
 ###################################################################
 m1 <- lme(log(soc) ~ log(ke), random = ~ 1 | county, data = data_ar_agg)
 summary(m1)
@@ -150,9 +150,6 @@ res4 <- ggplot(df_resid, aes(x = lon, y = lat, colour = residual)) +
 res4
 
 
-
-
-
 # predict on California
 # level = 0 means we want population-level predictions because we have unknown levels
 data_ca_agg$yhat <- exp(predict(m2, newdata = data_ca_agg, level = 0))
@@ -169,50 +166,51 @@ p5
 
 
 ##############################################################
+# DISCUSSIONS
+data_ar$stock_fitted <- m2$coefficients$fixed[1] + (m2$coefficients$fixed[2] * log(data_ar$ke))
+data_clean <- data_ar[data_ar$stock_fitted != Inf, ]
+rownames(data_clean) <- NULL
+data_clean$stock_fitted <- exp(data_clean$stock_fitted)
 
-# sketch
-# PLOTS
-# p1 <- ggplot(d_clean, aes(x = day, y = yhat)) +
-#   geom_point() +
-#   geom_smooth(method = "loess") +
-#   scale_x_continuous(n.breaks = 10) +
-#   scale_y_continuous(n.breaks = 8) +
-#   labs(x = "Days of the Year", y = bquote('Predicted SOC' ~ (kg/m ^ 2))) +
-#   theme_bw() +
-#   theme(
-#     axis.text.x = element_text(size = 18, color = "black"),
-#     axis.text.y = element_text(size = 18, color = "black"),
-#     axis.title.x = element_text(size = 20, color = "black"),
-#     axis.title.y = element_text(size = 20, color = "black")
-#   )
-# p1
-# 
-# p2 <- ggplot(d_clean, aes(x = day, y = ke)) +
-#   geom_point() +
-#   geom_smooth(method = "loess") +
-#   scale_x_continuous(n.breaks = 10) +
-#   scale_y_continuous(n.breaks = 8) +
-#   labs(x = "Days of the Year", y = bquote('KE' ~ (Joules))) +
-#   theme_bw() +
-#   theme(
-#     axis.text.x = element_text(size = 18, color = "black"),
-#     axis.text.y = element_text(size = 18, color = "black"),
-#     axis.title.x = element_text(size = 20, color = "black"),
-#     axis.title.y = element_text(size = 20, color = "black")
-#   )
-# p2
-# 
-# p3 <- ggplot(d_clean, aes(x = day, y = precipitation)) +
-#   geom_point() +
-#   geom_smooth(method = "loess") +
-#   scale_x_continuous(n.breaks = 10) +
-#   scale_y_continuous(n.breaks = 8) +
-#   labs(x = "Days of the Year", y = bquote('Precipitation' ~ (mm/day))) +
-#   theme_bw() +
-#   theme(
-#     axis.text.x = element_text(size = 18, color = "black"),
-#     axis.text.y = element_text(size = 18, color = "black"),
-#     axis.title.x = element_text(size = 20, color = "black"),
-#     axis.title.y = element_text(size = 20, color = "black")
-#   )
-# p3
+ggplot(data_clean, aes(x = day, y = stock_fitted)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(n.breaks = 8) +
+  labs(x = "Days of the Year", y = bquote("Predicted SOC" ~ (kg/m ^ 2))) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = 18, color = "black"),
+    axis.text.y = element_text(size = 18, color = "black"),
+    axis.title.x = element_text(size = 20, color = "black"),
+    axis.title.y = element_text(size = 20, color = "black")
+  )
+
+ggplot(data_clean, aes(x = day, y = ke)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(n.breaks = 8) +
+  labs(x = "Days of the Year", y = bquote("KE" ~ (Joules))) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = 18, color = "black"),
+    axis.text.y = element_text(size = 18, color = "black"),
+    axis.title.x = element_text(size = 20, color = "black"),
+    axis.title.y = element_text(size = 20, color = "black")
+  )
+
+ggplot(data_clean, aes(x = day, y = precipitation)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(n.breaks = 8) +
+  labs(x = "Days of the Year", y = bquote("Precipitation" ~ (mm/day))) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = 18, color = "black"),
+    axis.text.y = element_text(size = 18, color = "black"),
+    axis.title.x = element_text(size = 20, color = "black"),
+    axis.title.y = element_text(size = 20, color = "black")
+  )
+
