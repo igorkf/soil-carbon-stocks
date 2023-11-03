@@ -12,7 +12,7 @@ prepare_counties <- function(state, counties_path) {
 sample_points <- function(data, k = 20) {
   df_points <- data.frame()
   for (i in 1:nrow(data)) {
-    sampled_points <- sf::st_sample(data$geometry[[i]], size = K)
+    sampled_points <- sf::st_sample(data$geometry[[i]], size = k)
     df_lat_lon <- as.data.frame(do.call(rbind, sf::st_geometry(sampled_points)))
     colnames(df_lat_lon) <- c("lon", "lat")
     df_lat_lon$county <- data$Counties[[i]]
